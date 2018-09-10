@@ -6,10 +6,11 @@ The site is fronted by a CloudFront distribution, uses AWS Certificate Manager f
 for configuring the required DNS entries in Route53.
 
 The scripts also take care of:
-* Preventing the origin bucket being indexed by search bots.
-* Redirect other domains to the main site with proper rewriting.
-* Access logging
-* Redirect HTTP to HTTPS
+
+- Preventing the origin bucket being indexed by search bots.
+- Redirect other domains to the main site with proper rewriting.
+- Access logging
+- Redirect HTTP to HTTPS
 
 These scripts suite my needs, but all evolution in the form of pull requests are welcome! To make
 this process fluent, create [an issue](https://github.com/ringods/terraform-website-s3-cloudfront-route53/issues)
@@ -22,18 +23,19 @@ This repository is split in 4 parts, each of which can be used as a separate mod
 The split is done because of the lack of conditional logic in Terraform 0.6.x. I leave the composition
 of the required setup to you, the user.
 
-* *site-main*: setup of the main S3 bucket with a CloudFront distribution
-* *site-redirect*: setup of the redirect S3 bucket with a CloudFront distribution
-* *r53-cname*: configuration of a Route53 CNAME record pointing to a CloudFront distribution
-* *r53-alias*: configuration of a Route53 ALIAS record pointing to a CloudFront distribution. Required
+- _site-main_: setup of the main S3 bucket with a CloudFront distribution
+- _site-redirect_: setup of the redirect S3 bucket with a CloudFront distribution
+- _r53-cname_: configuration of a Route53 CNAME record pointing to a CloudFront distribution
+- _r53-alias_: configuration of a Route53 ALIAS record pointing to a CloudFront distribution. Required
   for naked domain (APEX) setups.
+- _site-main-lambda_: Extends _site-main_ to provide a CloudFront@Edge lambda function.
 
 With the above 4 modules, you can pick yourself what you need for setups like:
 
-* single site on https://sub.domain.com
-* single site on https://domain.com
-* main site on https://www.domain.com and redirecting the naked domain to the www version.
-* main site on https://domain.com and redirecting the www version to the naked domain.
+- single site on https://sub.domain.com
+- single site on https://domain.com
+- main site on https://www.domain.com and redirecting the naked domain to the www version.
+- main site on https://domain.com and redirecting the www version to the naked domain.
 
 Given the ease of setting up SSL secured sites with AWS Certificate Manager, the above modules do not offer
 the option to set up non-SSL sites. But since AWS Certificate Manager requires manual intervention to
@@ -47,9 +49,9 @@ certificates must be requested in region us-east-1.
 The different modules do not define variables for the AWS provider. For ease of use, the configuration
 is done implicitly by setting the following environment variables:
 
-* `AWS_SECRET_ACCESS_KEY`
-* `AWS_ACCESS_KEY_ID`
-* `AWS_DEFAULT_REGION`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_DEFAULT_REGION`
 
 These variables are inherited by any Terraform modules and prevents passing too much TF variables
 from parent to module. This info was found
@@ -78,13 +80,13 @@ See the [Terraform Modules documentation](https://www.terraform.io/docs/modules/
 
 ### Inputs
 
-* `region`: the AWS region where the S3 bucket will be created. The source bucket can be created in any
-   of the available regions. The default value is `us-east-1`.
-* `domain`: the domain name by which you want to make the website available on the Internet. While we are not
+- `region`: the AWS region where the S3 bucket will be created. The source bucket can be created in any
+  of the available regions. The default value is `us-east-1`.
+- `domain`: the domain name by which you want to make the website available on the Internet. While we are not
   at the point of setting up the DNS part, the CloudFront distribution needs to know for which domain it needs
   to accept requests.
-* `bucket_name`: the name of the bucket to create for the S3 based static website.
-* `duplicate-content-penalty-secret`: Value that will be used in a custom header for a CloudFront distribution
+- `bucket_name`: the name of the bucket to create for the S3 based static website.
+- `duplicate-content-penalty-secret`: Value that will be used in a custom header for a CloudFront distribution
   to gain access to the origin S3 bucket. If you make an S3 bucket available as the source for a CloudFront
   distribution, you have the risk of search bots to index both this source bucket and the distribution.
   Google _punishes_ you for this as you can read in
@@ -93,34 +95,34 @@ See the [Terraform Modules documentation](https://www.terraform.io/docs/modules/
   distribution and the source S3 bucket, or using custom headers between the distribution and the bucket.
   The use of an Origin Access User prescribes accessing the source bucket in REST mode which results in
   bucket redirects not being followed. As a result, this module will use the custom header option.
-* `deployer`: the name of an existing IAM user that will be used to push contents to the S3 bucket. This
+- `deployer`: the name of an existing IAM user that will be used to push contents to the S3 bucket. This
   user will get a role policy attached to it, configured to have read/write access to the bucket that
   will be created.
-* `acm-certificate-arn`: the id of an certificate in AWS Certificate Manager. As this certificate will be
+- `acm-certificate-arn`: the id of an certificate in AWS Certificate Manager. As this certificate will be
   used on a CloudFront distribution, Amazon's documentation states the certificate must be generated
   in the `us-east-1` region.
-* `not-found-response-path`: response path for the file that should be served on 404. Default to `/404.html`,
+- `not-found-response-path`: response path for the file that should be served on 404. Default to `/404.html`,
   but can be e.x. `/index.html` for single page applications.
-* `trusted_signers`: (Optional) List of AWS account IDs that are allowed to create signed URLs for this
+- `trusted_signers`: (Optional) List of AWS account IDs that are allowed to create signed URLs for this
   distribution. May contain `self` to indicate the account where the distribution is created in.
-* `project`: (Optional) the name of a project this site belongs to. Default value = `noproject`
-* `environment`: (Optional) the environment this site belongs to. Default value = `default`
-* `tags`: (Optional) Additional key/value pairs to set as tags.
-* `forward-query-string`:  (Optional) Forward the query string to the origin. Default value = `false`
-* `price_class`: (Optional) The price class that corresponds with the maximum price that you want to pay for CloudFront service.
+- `project`: (Optional) the name of a project this site belongs to. Default value = `noproject`
+- `environment`: (Optional) the environment this site belongs to. Default value = `default`
+- `tags`: (Optional) Additional key/value pairs to set as tags.
+- `forward-query-string`: (Optional) Forward the query string to the origin. Default value = `false`
+- `price_class`: (Optional) The price class that corresponds with the maximum price that you want to pay for CloudFront service.
   Read [pricing page](https://aws.amazon.com/cloudfront/pricing/) for more details.
   Options: `PriceClass_100` | `PriceClass_200` | `PriceClass_All`. Default value = `PriceClass_200`
 
 ### Outputs
 
-* `website_cdn_hostname`: the Amazon generated Cloudfront domain name. You can already test accessing your
+- `website_cdn_hostname`: the Amazon generated Cloudfront domain name. You can already test accessing your
   website content by this hostname. This hostname is needed later on to create a `CNAME` record in Route53.
-* `website_cdn_zone_id`: the Hosted Zone ID of the Cloudfront distribution. This zone ID is needed
+- `website_cdn_zone_id`: the Hosted Zone ID of the Cloudfront distribution. This zone ID is needed
   later on to create a Route53 `ALIAS` record.
-* `website_bucket_id`: The website bucket id
-* `website_bucket_arn`: The website bucket arn
-* `website_cdn_id`: The CDN ID of the Cloudfront distribution.
-* `website_cdn_arn`: The ARN of the CDN
+- `website_bucket_id`: The website bucket id
+- `website_bucket_arn`: The website bucket arn
+- `website_cdn_id`: The CDN ID of the Cloudfront distribution.
+- `website_cdn_arn`: The ARN of the CDN
 
 ## Setting up the redirect site
 
@@ -137,20 +139,19 @@ See the [Terraform Modules documentation](https://www.terraform.io/docs/modules/
 
 ### Inputs
 
-* `project`: (Optional) the name of a project this site belongs to. Default value = `noproject`
-* `environment`: (Optional) the environment this site belongs to. Default value = `default`
-* `tags`: (Optional) Additional key/value pairs to set as tags.
-* `default_root_object`: (Optional) The object that you want CloudFront to return (for example, index.html) when an end user requests the root URL. Default value = `index.html`
-* `price_class`: (Optional) The price class that corresponds with the maximum price that you want to pay for CloudFront service.
+- `project`: (Optional) the name of a project this site belongs to. Default value = `noproject`
+- `environment`: (Optional) the environment this site belongs to. Default value = `default`
+- `tags`: (Optional) Additional key/value pairs to set as tags.
+- `default_root_object`: (Optional) The object that you want CloudFront to return (for example, index.html) when an end user requests the root URL. Default value = `index.html`
+- `price_class`: (Optional) The price class that corresponds with the maximum price that you want to pay for CloudFront service.
   Read [pricing page](https://aws.amazon.com/cloudfront/pricing/) for more details.
   Options: `PriceClass_100` | `PriceClass_200` | `PriceClass_All`. Default value = `PriceClass_200`
 
-
 ### Outputs
 
-* `website_cdn_hostname`: the Amazon generated Cloudfront domain name. You can already test accessing your
+- `website_cdn_hostname`: the Amazon generated Cloudfront domain name. You can already test accessing your
   website content by this hostname. This hostname is needed later on to create a `CNAME` record in Route53.
-* `website_cdn_zone_id`: the Hosted Zone ID of the Cloudfront distribution. This zone ID is needed
+- `website_cdn_zone_id`: the Hosted Zone ID of the Cloudfront distribution. This zone ID is needed
   later on to create a Route53 `ALIAS` record.
 
 ## Setting up the Route 53 CNAME
@@ -168,11 +169,11 @@ non-root domain.
 
 ### Inputs
 
-* `domain`: the domain name you want to use to access your static website. This should match the domain
+- `domain`: the domain name you want to use to access your static website. This should match the domain
   name used in setting up either a main or a redirect site.
-* `target`: the domain name of the CloudFront distribution to which the domain name should point. You
+- `target`: the domain name of the CloudFront distribution to which the domain name should point. You
   usually pass the `website_cdn_hostname` output variable from the main or redirect site here.
-* `route53_zone_id`: the Route53 Zone ID where the CNAME entry must be created.
+- `route53_zone_id`: the Route53 Zone ID where the CNAME entry must be created.
 
 ## Setting up the Route 53 ALIAS
 
@@ -190,20 +191,20 @@ root domain.
 
 ### Inputs
 
-* `domain`: the domain name you want to use to access your static website. This should match the domain
+- `domain`: the domain name you want to use to access your static website. This should match the domain
   name used in setting up either a main or a redirect site.
-* `target`: the domain name of the CloudFront distribution to which the domain name should point. You
+- `target`: the domain name of the CloudFront distribution to which the domain name should point. You
   usually pass the `website_cdn_hostname` output variable from the main or redirect site here.
-* `cdn_hosted_zone_id`: the Hosted Zone ID of the CloudFront distribution. You usually pass the
+- `cdn_hosted_zone_id`: the Hosted Zone ID of the CloudFront distribution. You usually pass the
   `website_cdn_zone_id` output variable from the main or redirect site here.
-* `route53_zone_id`: the Route53 Zone ID where the CNAME entry must be created.
+- `route53_zone_id`: the Route53 Zone ID where the CNAME entry must be created.
 
 ## Users
 
 If you are using the modules in this Git repository to set up your static site and you want some
 visibility, add your site and info below and submit a pull request:
 
-* [Ringo De Smet's Blog](https://ringo.de-smet.name) (Ringo De Smet)
-* [ReleaseQueue](https://releasequeue.com) (Ringo De Smet)
+- [Ringo De Smet's Blog](https://ringo.de-smet.name) (Ringo De Smet)
+- [ReleaseQueue](https://releasequeue.com) (Ringo De Smet)
 
 **Enjoy!**
